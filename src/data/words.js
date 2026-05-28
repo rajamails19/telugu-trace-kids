@@ -9,6 +9,7 @@ export const words = [
     color: '#E11D48',
     light: '#FFF1F2',
     glow: '#FDA4AF',
+    deco: ['❤️', '🌟', '🏠'],
   },
   {
     id: 2,
@@ -19,6 +20,7 @@ export const words = [
     color: '#2563EB',
     light: '#EFF6FF',
     glow: '#93C5FD',
+    deco: ['⭐', '💪', '🌈'],
   },
   {
     id: 3,
@@ -29,6 +31,7 @@ export const words = [
     color: '#7C3AED',
     light: '#F5F3FF',
     glow: '#C4B5FD',
+    deco: ['💜', '🎀', '✨'],
   },
   {
     id: 4,
@@ -39,6 +42,7 @@ export const words = [
     color: '#EA580C',
     light: '#FFF7ED',
     glow: '#FDBA74',
+    deco: ['⚡', '🏆', '🌟'],
   },
   {
     id: 5,
@@ -49,6 +53,7 @@ export const words = [
     color: '#DB2777',
     light: '#FDF2F8',
     glow: '#F9A8D4',
+    deco: ['🎀', '💗', '🌸'],
   },
   {
     id: 6,
@@ -59,6 +64,7 @@ export const words = [
     color: '#4338CA',
     light: '#EEF2FF',
     glow: '#A5B4FC',
+    deco: ['🚀', '⚽', '🌟'],
   },
   {
     id: 7,
@@ -69,6 +75,7 @@ export const words = [
     color: '#059669',
     light: '#ECFDF5',
     glow: '#6EE7B7',
+    deco: ['🌿', '📿', '⭐'],
   },
   {
     id: 8,
@@ -79,6 +86,7 @@ export const words = [
     color: '#D97706',
     light: '#FFFBEB',
     glow: '#FCD34D',
+    deco: ['🌺', '💛', '🍫'],
   },
 
   // ── Animals ──
@@ -91,6 +99,7 @@ export const words = [
     color: '#B45309',
     light: '#FEFCE8',
     glow: '#FDE047',
+    deco: ['🐾', '🧶', '✨'],
   },
   {
     id: 10,
@@ -101,6 +110,7 @@ export const words = [
     color: '#92400E',
     light: '#FFF8F0',
     glow: '#FCA5A5',
+    deco: ['🦴', '🐾', '💙'],
   },
   {
     id: 11,
@@ -111,6 +121,7 @@ export const words = [
     color: '#0891B2',
     light: '#ECFEFF',
     glow: '#67E8F9',
+    deco: ['☁️', '🌿', '✨'],
   },
   {
     id: 12,
@@ -121,6 +132,7 @@ export const words = [
     color: '#0284C7',
     light: '#F0F9FF',
     glow: '#7DD3FC',
+    deco: ['🫧', '🌊', '💧'],
   },
 
   // ── Nature ──
@@ -133,6 +145,7 @@ export const words = [
     color: '#C026D3',
     light: '#FDF4FF',
     glow: '#E879F9',
+    deco: ['🌺', '🌼', '🦋'],
   },
   {
     id: 14,
@@ -143,6 +156,7 @@ export const words = [
     color: '#16A34A',
     light: '#F0FDF4',
     glow: '#86EFAC',
+    deco: ['🍃', '☀️', '🐦'],
   },
   {
     id: 15,
@@ -153,5 +167,6 @@ export const words = [
     color: '#0369A1',
     light: '#F0F9FF',
     glow: '#38BDF8',
+    deco: ['🌊', '❄️', '☁️'],
   },
 ]
