@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Nunito', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+.baloo {
+  font-family: 'Baloo 2', cursive;
+}
+
+.telugu {
+  font-family: 'Noto Sans Telugu', sans-serif;
+}
