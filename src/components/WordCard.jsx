@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import TracingCanvas from './TracingCanvas'
+import { useSpeech, speakWord } from '../hooks/useSpeech'
 
 // Stable float params per slot — no Math.random() on render
 const FLOAT_SLOTS = [
@@ -64,11 +65,13 @@ function EmojiCelebration({ visible, emoji, color }) {
 export default function WordCard({ word, speed, wordNumber, total }) {
   const [showCelebration, setShowCelebration] = useState(false)
   const replayRef = useRef(null)
+  const { speak } = useSpeech()
 
   const handleComplete = useCallback(() => {
     setShowCelebration(true)
     setTimeout(() => setShowCelebration(false), 900)
-  }, [])
+    speak(word)
+  }, [word, speak])
 
   const decos = word.deco ?? []
 
@@ -172,19 +175,35 @@ export default function WordCard({ word, speed, wordNumber, total }) {
           <span className="text-xs font-semibold text-gray-400">
             Word {wordNumber} of {total}
           </span>
-          <motion.button
-            onClick={() => replayRef.current?.()}
-            whileTap={{ scale: 0.9 }}
-            whileHover={{ scale: 1.04 }}
-            className="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold"
-            style={{ color: word.color, background: word.light, border: `2px solid ${word.color}40` }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M1 4v6h6M23 20v-6h-6" />
-              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" />
-            </svg>
-            Replay
-          </motion.button>
+          <div className="flex items-center gap-2">
+            {/* ▶ Hear — plays the Telugu word out loud */}
+            <motion.button
+              onClick={() => speakWord(word.telugu)}
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.04 }}
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{ color: word.color, background: word.light, border: `2px solid ${word.color}40` }}
+              title="Hear the word"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+            </motion.button>
+            {/* ↺ Replay animation */}
+            <motion.button
+              onClick={() => replayRef.current?.()}
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.04 }}
+              className="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold"
+              style={{ color: word.color, background: word.light, border: `2px solid ${word.color}40` }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M1 4v6h6M23 20v-6h-6" />
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" />
+              </svg>
+              Replay
+            </motion.button>
+          </div>
         </div>
       </div>
     </motion.div>
