@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import Header from './components/Header'
 import TabBar from './components/TabBar'
@@ -8,6 +9,7 @@ import LetterCard from './components/LetterCard'
 import SpeedControl from './components/SpeedControl'
 import Navigation from './components/Navigation'
 import JumpSelect from './components/JumpSelect'
+import TracingPage from './pages/TracingPage'
 import { words } from './data/words'
 import { vowels, consonants } from './data/letters'
 
@@ -52,7 +54,7 @@ export default function App() {
   const currentWord   = words[wordIndex]
   const currentLetter = letters[letterIndex]
 
-  return (
+  const homePage = (
     <div
       className="min-h-screen py-4 px-4"
       style={{ background: 'linear-gradient(160deg, #FFFBF0 0%, #FEF3C7 45%, #FFF9F0 100%)' }}
@@ -146,5 +148,12 @@ export default function App() {
         </p>
       </div>
     </div>
+  )
+
+  return (
+    <Routes>
+      <Route path="/" element={homePage} />
+      <Route path="/tracing" element={<TracingPage />} />
+    </Routes>
   )
 }
