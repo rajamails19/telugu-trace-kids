@@ -13,16 +13,24 @@ import { useRef, useEffect, useCallback, useState } from 'react'
 import { useSpeech, speakWord } from '../hooks/useSpeech'
 
 const SVG_W  = 720
-const SVG_H  = 440
-const SVG_FS = 260
+const SVG_H  = 480          // slightly taller to give single letters room
 const SVG_TX = SVG_W / 2
-const SVG_TY = SVG_H * 0.74
 
-// How many physical pixels the brush is wide per SVG unit of scale
-// (big = forgiving — imprecise strokes still fill the letter nicely)
-const BRUSH_SVG = 72
+// Font size & baseline differ between word (multi-char) and single-letter modes
+const WORD_FS   = 260       // fits multi-character words nicely
+const LETTER_FS = 450       // huge — fills the canvas for single-letter practice
 
-export default function InteractiveCanvas({ word }) {
+const WORD_TY   = SVG_H * 0.74   // ≈ 355  (words sit a bit high)
+const LETTER_TY = SVG_H * 0.76   // ≈ 365  (single letter — keep baseline central)
+
+// Brush width: in letter mode use a bigger brush to match the larger strokes
+const BRUSH_WORD   = 72
+const BRUSH_LETTER = 90
+
+export default function InteractiveCanvas({ word, letterMode = false }) {
+  const SVG_FS    = letterMode ? LETTER_FS   : WORD_FS
+  const SVG_TY    = letterMode ? LETTER_TY   : WORD_TY
+  const BRUSH_SVG = letterMode ? BRUSH_LETTER : BRUSH_WORD
   const mainRef = useRef(null)
   const fillRef = useRef(null)
   const maskRef = useRef(null)
@@ -58,14 +66,16 @@ export default function InteractiveCanvas({ word }) {
     ctx.fillStyle = `${word.glow}44`
     ctx.fillText(word.telugu, tx, ty)
 
-    // Dashed outline
-    ctx.setLineDash([Math.round(11 * sc), Math.round(8 * sc)])
-    ctx.lineWidth   = 3.5 * sc
+    // Dashed outline — slightly thicker in letter mode so dashes are visible on big strokes
+    const dashOn  = letterMode ? Math.round(14 * sc) : Math.round(11 * sc)
+    const dashOff = letterMode ? Math.round(10 * sc) : Math.round(8  * sc)
+    ctx.setLineDash([dashOn, dashOff])
+    ctx.lineWidth   = (letterMode ? 4.5 : 3.5) * sc
     ctx.strokeStyle = word.color
     ctx.lineCap     = 'round'
     ctx.strokeText(word.telugu, tx, ty)
     ctx.setLineDash([])
-  }, [word])
+  }, [word, letterMode, SVG_FS, SVG_TY])
 
   /* ── composite fill → display ──────────────────────────── */
   const redraw = useCallback(() => {
@@ -95,13 +105,15 @@ export default function InteractiveCanvas({ word }) {
     ctx.textAlign    = 'center'
     ctx.textBaseline = 'alphabetic'
     ctx.font         = `700 ${fs}px 'Noto Sans Telugu', sans-serif`
-    ctx.setLineDash([Math.round(11 * sc), Math.round(8 * sc)])
-    ctx.lineWidth   = 3 * sc
+    const dashOn  = letterMode ? Math.round(14 * sc) : Math.round(11 * sc)
+    const dashOff = letterMode ? Math.round(10 * sc) : Math.round(8  * sc)
+    ctx.setLineDash([dashOn, dashOff])
+    ctx.lineWidth   = (letterMode ? 4 : 3) * sc
     ctx.strokeStyle = 'rgba(255,255,255,0.55)'
     ctx.lineCap     = 'round'
     ctx.strokeText(word.telugu, tx, ty)
     ctx.setLineDash([])
-  }, [drawGuide, word])
+  }, [drawGuide, word, letterMode, SVG_FS, SVG_TY])
 
   /* ── initialise all canvases ───────────────────────────── */
   const init = useCallback(async () => {
@@ -127,7 +139,7 @@ export default function InteractiveCanvas({ word }) {
     mc.textBaseline = 'alphabetic'
     mc.font         = `700 ${SVG_FS * sc}px 'Noto Sans Telugu', sans-serif`
     mc.fillStyle    = 'white'
-    mc.fillText(word.telugu, SVG_TX * (phW / SVG_W), SVG_TY * (phH / SVG_H))
+    mc.fillText(word.telugu, SVG_TX * (phW / SVG_W), SVG_TY * (phH / SVG_H))  // SVG_FS/TY from component scope
     maskRef.current = mask
 
     // Fill canvas: starts empty
@@ -240,7 +252,7 @@ export default function InteractiveCanvas({ word }) {
           display: 'block',
           cursor: 'crosshair',
           aspectRatio: `${SVG_W} / ${SVG_H}`,
-          maxHeight: 340,
+          maxHeight: letterMode ? 420 : 340,
         }}
         onMouseDown={onStart}
         onMouseMove={onMove}
