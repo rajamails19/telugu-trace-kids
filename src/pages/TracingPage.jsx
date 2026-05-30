@@ -1,26 +1,28 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import InteractiveCanvas from '../components/InteractiveCanvas'
 import { speakWord } from '../hooks/useSpeech'
-import { words } from '../data/words'
-import { vowels, consonants } from '../data/letters'
-
-const LETTER_CATS = [
-  { key: 'vowels',     label: 'Vowels',      data: vowels },
-  { key: 'consonants', label: 'Consonants',  data: consonants },
-]
+import { useWords, useLetters } from '../hooks/useData'
 
 export default function TracingPage() {
-  const [mode, setMode]         = useState('words')        // 'words' | 'letters'
+  // ── Data from backend API ──────────────────────────────────────────────────
+  const { words, loading: wordsLoading }               = useWords()
+  const { vowels, consonants, loading: lettersLoading } = useLetters()
+
+  const LETTER_CATS = [
+    { key: 'vowels',     label: 'Vowels',     data: vowels },
+    { key: 'consonants', label: 'Consonants', data: consonants },
+  ]
+
+  const [mode, setMode]           = useState('words')
   const [letterCat, setLetterCat] = useState('vowels')
-  const [wordIdx, setWordIdx]   = useState(0)
+  const [wordIdx, setWordIdx]     = useState(0)
   const [letterIdx, setLetterIdx] = useState(0)
 
   const chipStripRef = useRef(null)
 
   /* ── derived state ─────────────────────────────────── */
-  const letters = LETTER_CATS.find((c) => c.key === letterCat).data
+  const letters = LETTER_CATS.find((c) => c.key === letterCat)?.data ?? []
   const items   = mode === 'words' ? words : letters
   const idx     = mode === 'words' ? wordIdx : letterIdx
   const setIdx  = useCallback(
@@ -31,9 +33,10 @@ export default function TracingPage() {
 
   /* ── speak on item change ──────────────────────────── */
   useEffect(() => {
+    if (!current) return          // guard: data hasn't arrived from API yet
     const t = setTimeout(() => speakWord(current.telugu), 500)
     return () => clearTimeout(t)
-  }, [current.id])
+  }, [current?.id])               // ?. = optional chaining: undefined?.id = undefined (no crash)
 
   /* ── auto-scroll chip into view ───────────────────── */
   useEffect(() => {
@@ -52,6 +55,17 @@ export default function TracingPage() {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [items.length, setIdx])
+
+  /* ── loading guard ────────────────────────────────── */
+  if (wordsLoading || lettersLoading || !current) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4"
+        style={{ background: 'linear-gradient(160deg, #FFF1F2 0%, #FFF5F5 100%)' }}>
+        <div className="text-5xl animate-bounce">✏️</div>
+        <p className="font-extrabold text-lg" style={{ color: '#E11D48' }}>Loading…</p>
+      </div>
+    )
+  }
 
   /* ── mode switch helpers ───────────────────────────── */
   const switchMode = (m) => {
@@ -87,21 +101,7 @@ export default function TracingPage() {
       <div className="relative max-w-xl mx-auto px-4 flex flex-col gap-4">
 
         {/* ── Top bar ──────────────────────────────────── */}
-        <div className="flex items-center justify-between pt-6">
-          <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}>
-            <Link
-              to="/"
-              className="flex items-center gap-2 text-sm font-extrabold px-4 py-2 rounded-full"
-              style={{
-                color: current.color,
-                background: current.light,
-                border: `2px solid ${current.color}30`,
-              }}
-            >
-              ← Home
-            </Link>
-          </motion.div>
-
+        <div className="flex items-center justify-end pt-4">
           <span
             className="text-xs font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-full"
             style={{ color: current.color, background: `${current.color}15` }}

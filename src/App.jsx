@@ -9,11 +9,19 @@ import LetterCard from './components/LetterCard'
 import SpeedControl from './components/SpeedControl'
 import Navigation from './components/Navigation'
 import JumpSelect from './components/JumpSelect'
-import TracingPage from './pages/TracingPage'
-import { words } from './data/words'
-import { vowels, consonants } from './data/letters'
+import TracingPage  from './pages/TracingPage'
+import AdminPage    from './pages/AdminPage'
+import ProgressPage from './pages/ProgressPage'
+import ShlokasPage  from './pages/ShlokasPage'
+import NavBar       from './components/NavBar'
+import { useWords, useLetters } from './hooks/useData'
 
 export default function App() {
+  // ── Data from backend API ─────────────────────────────────────────────────
+  const { words, loading: wordsLoading }             = useWords()
+  const { vowels, consonants, loading: lettersLoading } = useLetters()
+
+  // ── UI state ──────────────────────────────────────────────────────────────
   const [tab, setTab]                   = useState('words')
   const [category, setCategory]         = useState('vowel')
   const [wordIndex, setWordIndex]       = useState(0)
@@ -53,6 +61,19 @@ export default function App() {
 
   const currentWord   = words[wordIndex]
   const currentLetter = letters[letterIndex]
+
+  // Show a simple loading screen while both fetches complete
+  const isLoading = wordsLoading || lettersLoading
+  if (isLoading || !currentWord || !currentLetter) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4"
+        style={{ background: 'linear-gradient(160deg, #FFFBF0 0%, #FEF3C7 100%)' }}>
+        <div className="text-5xl animate-bounce">✍️</div>
+        <p className="text-amber-700 font-extrabold text-lg tracking-wide">Loading Telugu Trace Kids…</p>
+        <p className="text-amber-500 text-sm font-semibold">Fetching words from server</p>
+      </div>
+    )
+  }
 
   const homePage = (
     <div
@@ -151,9 +172,15 @@ export default function App() {
   )
 
   return (
-    <Routes>
-      <Route path="/" element={homePage} />
-      <Route path="/tracing" element={<TracingPage />} />
-    </Routes>
+    <>
+      <NavBar />
+      <Routes>
+        <Route path="/"         element={homePage} />
+        <Route path="/tracing"  element={<TracingPage />} />
+        <Route path="/shlokas"  element={<ShlokasPage />} />
+        <Route path="/admin"    element={<AdminPage />} />
+        <Route path="/progress" element={<ProgressPage />} />
+      </Routes>
+    </>
   )
 }

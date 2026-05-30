@@ -6,8 +6,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 5179,
-    // Proxy Google TTS through our dev server to avoid CORS
     proxy: {
+      // ── Google TTS (audio) ──────────────────────────────────────────────
       '/api/tts': {
         target: 'https://translate.google.com',
         changeOrigin: true,
@@ -17,6 +17,15 @@ export default defineConfig({
           'Referer': 'https://translate.google.com/',
         },
       },
+      // ── Backend API (words + letters from SQLite) ───────────────────────
+      // Vite forwards these to our Express server on port 3001
+      '/api/words':     { target: 'http://localhost:3001', changeOrigin: true },
+      '/api/letters':   { target: 'http://localhost:3001', changeOrigin: true },
+      '/api/progress':  { target: 'http://localhost:3001', changeOrigin: true },
+      '/api/translate': { target: 'http://localhost:3001', changeOrigin: true },
+      '/api/shlokas':    { target: 'http://localhost:3001', changeOrigin: true },
+      '/api/shloka-tts': { target: 'http://localhost:3001', changeOrigin: true },
+      '/api/health':     { target: 'http://localhost:3001', changeOrigin: true },
     },
   },
 })

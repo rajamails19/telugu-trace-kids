@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# SQLite database (generated at runtime)
+server/telugu.sqlite
+
+# Environment variables (contains API keys — NEVER commit)
+.env
+
+# Sarvam TTS audio cache (generated at runtime)
+server/cache/
+
+# nodemon
+.nodemon*
