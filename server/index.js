@@ -1,26 +1,27 @@
 /**
  * server/index.js — Express backend entry point
  *
- * Starts an HTTP server on port 3001.
- * The Vite dev server (port 5179) proxies /api/* requests here.
+ * Auto-finds a free port starting from 3001.
+ * Writes the chosen port to server/.port so Vite's proxy can read it.
+ * The Vite dev server proxies /api/* requests here automatically.
  */
 
-// ── Inline .env loader (no dotenv dependency) ─────────────────────────────────
-// Reads .env from the project root, sets process.env for each KEY=VALUE line.
-// Only sets keys that aren't already present (env vars set by the OS take priority).
-import { readFileSync, existsSync } from 'fs'
-import { fileURLToPath }            from 'url'
-import { dirname, join }            from 'path'
+// ── Inline .env loader ────────────────────────────────────────────────────────
+import { readFileSync, existsSync, writeFileSync, unlinkSync } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, join }  from 'path'
+import net                from 'net'
+
 const __serverDir = dirname(fileURLToPath(import.meta.url))
 const envPath     = join(__serverDir, '..', '.env')
 if (existsSync(envPath)) {
   for (const line of readFileSync(envPath, 'utf8').split('\n')) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('#')) continue
-    const eq  = trimmed.indexOf('=')
+    const t = line.trim()
+    if (!t || t.startsWith('#')) continue
+    const eq  = t.indexOf('=')
     if (eq === -1) continue
-    const key = trimmed.slice(0, eq).trim()
-    const val = trimmed.slice(eq + 1).trim()
+    const key = t.slice(0, eq).trim()
+    const val = t.slice(eq + 1).trim()
     if (key && !(key in process.env)) process.env[key] = val
   }
   console.log('[Server] .env loaded')
@@ -35,23 +36,41 @@ import progressRouter  from './routes/progress.js'
 import translateRouter from './routes/translate.js'
 import shlokasRouter   from './routes/shlokas.js'
 import shlokaTtsRouter from './routes/shloka-tts.js'
-import './db.js'   // runs DB setup + seeding on startup
+import './db.js'
 
-const app  = express()
-const PORT = 3001
+// ── Auto-find a free port ─────────────────────────────────────────────────────
+// Tries 3001, 3002, 3003 … until it finds one that isn't in use.
+function findFreePort(start) {
+  return new Promise((resolve) => {
+    const srv = net.createServer()
+    srv.once('error', () => resolve(findFreePort(start + 1)))
+    srv.once('listening', () => srv.close(() => resolve(start)))
+    srv.listen(start)
+  })
+}
 
-app.use(cors())           // allow requests from Vite dev server
-app.use(express.json())   // parse JSON request bodies
+const PORT     = await findFreePort(3001)
+const portFile = join(__serverDir, '.port')
 
-// ── Routes ───────────────────────────────────────────────────────────────────
+// Write port to file so vite.config.js can read it for dynamic proxying
+writeFileSync(portFile, String(PORT))
+
+// Clean up the port file when the server stops
+process.on('exit',    () => { try { unlinkSync(portFile) } catch {} })
+process.on('SIGINT',  () => process.exit(0))
+process.on('SIGTERM', () => process.exit(0))
+// ─────────────────────────────────────────────────────────────────────────────
+
+const app = express()
+app.use(cors())
+app.use(express.json())
+
 app.use('/api/words',      wordsRouter)
 app.use('/api/letters',    lettersRouter)
 app.use('/api/progress',   progressRouter)
 app.use('/api/translate',  translateRouter)
 app.use('/api/shlokas',    shlokasRouter)
 app.use('/api/shloka-tts', shlokaTtsRouter)
-
-// Health-check — useful to verify the server is alive
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }))
 
 app.listen(PORT, () => {
