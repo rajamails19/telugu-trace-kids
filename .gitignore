@@ -26,6 +26,9 @@ dist-ssr
 # SQLite database (generated at runtime)
 server/telugu.sqlite
 
+# Auto-detected server port (written at runtime, read by vite proxy)
+server/.port
+
 # Environment variables (contains API keys — NEVER commit)
 .env
 
@@ -34,3 +37,4 @@ server/cache/
 
 # nodemon
 .nodemon*
+.vercel
