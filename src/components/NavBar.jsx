@@ -1,73 +1,96 @@
 /**
- * NavBar.jsx — Persistent top navigation bar
+ * NavBar.jsx — Sticky floating pill navigation for Telugu Vani.
  *
- * Uses React Router's useLocation() to know which page we're on,
- * then highlights the active tab. Link handles navigation without
- * a full page reload (SPA behaviour).
+ * Design: warm-white pill with backdrop blur, brand mark on left,
+ * centered nav links, gold-ring avatar on right.
+ * Active link = peach background + orange text.
+ * Hidden on mobile (< 900px) via .tv-navlinks CSS class.
  */
 
 import { Link, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { T } from './TV'
 
 const TABS = [
-  { path: '/',         label: 'Home',     icon: '🏠' },
-  { path: '/tracing',  label: 'Tracing',  icon: '✏️' },
-  { path: '/shlokas',  label: 'Shlokas',  icon: '🕉️' },
-  { path: '/admin',    label: 'Admin',    icon: '⚙️' },
-  { path: '/progress', label: 'Progress', icon: '🏆' },
+  { path: '/',         label: 'Home'     },
+  { path: '/tracing',  label: 'Tracing'  },
+  { path: '/shlokas',  label: 'Shlokas'  },
+  { path: '/progress', label: 'Progress' },
+  { path: '/admin',    label: 'Admin'    },
 ]
-
-// One accent colour per page so the nav feels alive
-const PAGE_COLORS = {
-  '/':         '#F59E0B',
-  '/tracing':  '#E11D48',
-  '/shlokas':  '#EA580C',
-  '/admin':    '#6366F1',
-  '/progress': '#10B981',
-}
 
 export default function NavBar() {
   const { pathname } = useLocation()
-  const accentColor = PAGE_COLORS[pathname] ?? '#6366F1'
 
   return (
-    <div
-      className="sticky top-0 z-50 w-full flex justify-center px-4 py-3"
-      style={{
-        background: 'rgba(255,255,255,0.85)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(0,0,0,0.06)',
-      }}
-    >
-      <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        {TABS.map((tab) => {
-          const active = pathname === tab.path
-          return (
-            <motion.div key={tab.path} whileTap={{ scale: 0.93 }}>
+    <div style={{
+      position: 'sticky', top: 0, zIndex: 50,
+      padding: '16px 24px 8px',
+      display: 'flex', justifyContent: 'center',
+      pointerEvents: 'none',
+    }}>
+      <nav style={{
+        pointerEvents: 'auto',
+        width: '100%', maxWidth: 1180,
+        background: 'rgba(255,253,248,0.94)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        borderRadius: 999,
+        padding: '10px 14px',
+        display: 'flex', alignItems: 'center', gap: 12,
+        boxShadow: '0 18px 40px -26px rgba(36,26,85,0.5), 0 1px 0 rgba(255,255,255,0.9) inset',
+        border: '1px solid rgba(255,255,255,0.9)',
+      }}>
+
+        {/* ── Brand ── */}
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 11, textDecoration: 'none', flexShrink: 0 }}>
+          <span style={{
+            width: 38, height: 38, borderRadius: 13, background: T.orange,
+            display: 'grid', placeItems: 'center',
+            boxShadow: '0 8px 16px -7px rgba(240,86,14,0.7)',
+          }}>
+            <span style={{ fontFamily: T.te, color: '#fff', fontWeight: 700, fontSize: 20 }}>వ</span>
+          </span>
+          <span style={{ fontFamily: T.serif, fontWeight: 800, fontSize: 20, color: T.ink, letterSpacing: 0.2, whiteSpace: 'nowrap' }}>
+            Telugu Vani
+          </span>
+        </Link>
+
+        {/* ── Center links (hidden < 900px via CSS class) ── */}
+        <div className="tv-navlinks" style={{ alignItems: 'center', gap: 4, margin: '0 auto' }}>
+          {TABS.map(tab => {
+            const active = pathname === tab.path
+            return (
               <Link
+                key={tab.path}
                 to={tab.path}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-extrabold transition-all"
-                style={
-                  active
-                    ? {
-                        background: accentColor,
-                        color: 'white',
-                        boxShadow: `0 4px 14px ${accentColor}55`,
-                      }
-                    : {
-                        background: 'white',
-                        color: '#94A3B8',
-                        border: '2px solid #E8ECF0',
-                      }
-                }
+                style={{
+                  fontFamily: T.sans, fontWeight: 700, fontSize: 15, textDecoration: 'none',
+                  padding: '9px 18px', borderRadius: 999,
+                  background: active ? T.peach : 'transparent',
+                  color: active ? T.orange : T.ink,
+                  transition: 'background .2s, color .2s',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(58,30,156,0.05)' }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
               >
-                <span>{tab.icon}</span>
-                <span>{tab.label}</span>
+                {tab.label}
               </Link>
-            </motion.div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+
+        {/* ── Avatar ── */}
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%',
+          border: `2.5px solid ${T.gold}`, background: '#FFF6E2',
+          display: 'grid', placeItems: 'center',
+          fontFamily: T.sans, fontWeight: 800, fontSize: 13, color: T.orange,
+          flexShrink: 0,
+        }}>
+          SJ
+        </div>
+      </nav>
     </div>
   )
 }

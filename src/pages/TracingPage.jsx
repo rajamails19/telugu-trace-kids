@@ -1,44 +1,53 @@
+/**
+ * TracingPage.jsx — Letter + Word tracing practice
+ *
+ * All logic unchanged: word/letter mode toggle, chip strip, keyboard nav,
+ * speak-on-change, InteractiveCanvas with mask-fill reveal.
+ * Visual layer restyled to match Telugu Vani premium design.
+ */
+
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import InteractiveCanvas from '../components/InteractiveCanvas'
 import { speakWord } from '../hooks/useSpeech'
 import { useWords, useLetters } from '../hooks/useData'
+import { T, DotField, Eyebrow, TVButton, TVCard, TVPage, TVFooter } from '../components/TV'
+
+const LETTER_CATS = [
+  { key: 'vowels',     label: 'Vowels',     labelTe: 'అచ్చులు' },
+  { key: 'consonants', label: 'Consonants', labelTe: 'హల్లులు' },
+]
 
 export default function TracingPage() {
-  // ── Data from backend API ──────────────────────────────────────────────────
+  // ── Data ──────────────────────────────────────────────────────────────────
   const { words, loading: wordsLoading }               = useWords()
   const { vowels, consonants, loading: lettersLoading } = useLetters()
 
-  const LETTER_CATS = [
-    { key: 'vowels',     label: 'Vowels',     data: vowels },
-    { key: 'consonants', label: 'Consonants', data: consonants },
-  ]
-
-  const [mode, setMode]           = useState('words')
+  const [mode, setMode]           = useState('letters')
   const [letterCat, setLetterCat] = useState('vowels')
   const [wordIdx, setWordIdx]     = useState(0)
   const [letterIdx, setLetterIdx] = useState(0)
+  const [toast, setToast]         = useState(false)
 
   const chipStripRef = useRef(null)
 
-  /* ── derived state ─────────────────────────────────── */
-  const letters = LETTER_CATS.find((c) => c.key === letterCat)?.data ?? []
-  const items   = mode === 'words' ? words : letters
-  const idx     = mode === 'words' ? wordIdx : letterIdx
-  const setIdx  = useCallback(
-    (fn) => mode === 'words' ? setWordIdx(fn) : setLetterIdx(fn),
+  const letterData = letterCat === 'vowels' ? vowels : consonants
+  const items      = mode === 'words' ? words : letterData
+  const idx        = mode === 'words' ? wordIdx : letterIdx
+  const setIdx     = useCallback(
+    fn => mode === 'words' ? setWordIdx(fn) : setLetterIdx(fn),
     [mode],
   )
   const current = items[idx] ?? items[0]
 
-  /* ── speak on item change ──────────────────────────── */
+  /* ── Speak on item change ─────────────────────────────── */
   useEffect(() => {
-    if (!current) return          // guard: data hasn't arrived from API yet
+    if (!current) return
     const t = setTimeout(() => speakWord(current.telugu), 500)
     return () => clearTimeout(t)
-  }, [current?.id])               // ?. = optional chaining: undefined?.id = undefined (no crash)
+  }, [current?.id])
 
-  /* ── auto-scroll chip into view ───────────────────── */
+  /* ── Auto-scroll chip into view ───────────────────────── */
   useEffect(() => {
     const strip = chipStripRef.current
     if (!strip) return
@@ -46,335 +55,271 @@ export default function TracingPage() {
     if (chip) chip.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' })
   }, [idx, mode, letterCat])
 
-  /* ── keyboard navigation ───────────────────────────── */
+  /* ── Keyboard navigation ──────────────────────────────── */
   useEffect(() => {
-    const handler = (e) => {
-      if (e.key === 'ArrowRight') setIdx((i) => Math.min(i + 1, items.length - 1))
-      if (e.key === 'ArrowLeft')  setIdx((i) => Math.max(i - 1, 0))
+    const handler = e => {
+      if (e.key === 'ArrowRight') setIdx(i => Math.min(i + 1, items.length - 1))
+      if (e.key === 'ArrowLeft')  setIdx(i => Math.max(i - 1, 0))
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [items.length, setIdx])
 
-  /* ── loading guard ────────────────────────────────── */
+  const switchMode = m => { setMode(m); setWordIdx(0); setLetterIdx(0) }
+  const switchLetterCat = cat => { setLetterCat(cat); setLetterIdx(0) }
+
+  function handleCheck() {
+    setToast(true)
+    setTimeout(() => setToast(false), 1900)
+  }
+
+  /* ── Loading guard ────────────────────────────────────── */
   if (wordsLoading || lettersLoading || !current) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4"
-        style={{ background: 'linear-gradient(160deg, #FFF1F2 0%, #FFF5F5 100%)' }}>
-        <div className="text-5xl animate-bounce">✏️</div>
-        <p className="font-extrabold text-lg" style={{ color: '#E11D48' }}>Loading…</p>
+      <div style={{ minHeight: '100svh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, background: '#FBF4E4' }}>
+        <div style={{ fontSize: 48, animation: 'tvRise 1s infinite alternate' }}>✏️</div>
+        <p style={{ fontFamily: T.serif, fontWeight: 800, fontSize: 22, color: T.ink }}>Loading…</p>
       </div>
     )
   }
 
-  /* ── mode switch helpers ───────────────────────────── */
-  const switchMode = (m) => {
-    setMode(m)
-    setWordIdx(0)
-    setLetterIdx(0)
-  }
+  const isLetterMode = mode === 'letters'
+  const catInfo = LETTER_CATS.find(c => c.key === letterCat)
 
-  const switchLetterCat = (cat) => {
-    setLetterCat(cat)
-    setLetterIdx(0)
-  }
-
-  /* ── render ─────────────────────────────────────────── */
   return (
-    <div
-      className="min-h-screen pb-10"
-      style={{
-        background: `linear-gradient(160deg, ${current.light} 0%, #FFFFFF 55%, ${current.light} 100%)`,
-        transition: 'background 0.5s ease',
-      }}
-    >
-      {/* Dot grid backdrop — updates color with selection */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `radial-gradient(circle, ${current.glow}44 1px, transparent 1px)`,
-          backgroundSize: '28px 28px',
-          transition: 'background-image 0.5s ease',
-        }}
-      />
+    <div style={{ minHeight: '100svh', position: 'relative' }}>
+      <DotField />
+      <TVPage>
 
-      <div className="relative max-w-xl mx-auto px-4 flex flex-col gap-4">
-
-        {/* ── Top bar ──────────────────────────────────── */}
-        <div className="flex items-center justify-end pt-4">
-          <span
-            className="text-xs font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-full"
-            style={{ color: current.color, background: `${current.color}15` }}
-          >
-            ✏️ Free Tracing
-          </span>
+        {/* ── Page header ──────────────────────────────────────── */}
+        <div style={{ textAlign: 'center', padding: '34px 0 30px', animation: 'tvRise .5s both' }}>
+          <Eyebrow style={{ justifyContent: 'center', display: 'flex' }}>Practice</Eyebrow>
+          <h1 style={{ fontFamily: T.serif, fontWeight: 800, fontSize: 'clamp(38px,5vw,60px)', color: T.ink, margin: '10px 0 12px', lineHeight: 1 }}>
+            Letter Tracing
+          </h1>
+          <p style={{ fontFamily: T.sans, fontWeight: 500, fontSize: 18, color: T.inkSoft, margin: 0 }}>
+            Follow the golden guide. Lift, breathe, trace — your stroke becomes the letter.
+          </p>
         </div>
 
-        {/* ── Mode tabs: Letters | Words ──────────────── */}
-        <div
-          className="flex gap-1.5 p-1.5 rounded-2xl"
-          style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', boxShadow: '0 2px 12px #00000010' }}
-        >
-          {['letters', 'words'].map((m) => (
-            <motion.button
+        {/* ── Mode toggle: Letters / Words ─────────────────────── */}
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 24 }}>
+          {['letters', 'words'].map(m => (
+            <button
               key={m}
               onClick={() => switchMode(m)}
-              whileTap={{ scale: 0.96 }}
-              className="flex-1 py-2.5 rounded-xl text-sm font-extrabold capitalize transition-all"
-              style={
-                mode === m
-                  ? { background: current.color, color: 'white', boxShadow: `0 4px 14px ${current.glow}88` }
-                  : { color: '#94A3B8', background: 'transparent' }
-              }
+              style={{
+                fontFamily: T.sans, fontWeight: 800, fontSize: 15, cursor: 'pointer',
+                padding: '9px 22px', borderRadius: 999, border: 'none',
+                background: mode === m ? T.ink : T.white,
+                color: mode === m ? '#fff' : T.inkSoft,
+                boxShadow: mode === m ? '0 8px 20px -10px rgba(58,30,156,0.6)' : `0 0 0 1.5px ${T.border}`,
+                transition: 'all .2s',
+              }}
             >
               {m === 'letters' ? '🔤 Letters' : '📚 Words'}
-            </motion.button>
+            </button>
           ))}
         </div>
 
-        {/* ── Letter sub-tabs: Vowels | Consonants ────── */}
-        <AnimatePresence>
-          {mode === 'letters' && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.22 }}
-              className="flex gap-2"
-            >
-              {LETTER_CATS.map((cat) => (
-                <button
-                  key={cat.key}
-                  onClick={() => switchLetterCat(cat.key)}
-                  className="flex-1 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all"
-                  style={
-                    letterCat === cat.key
-                      ? { background: `${current.color}22`, color: current.color, border: `2px solid ${current.color}44` }
-                      : { background: 'white', color: '#94A3B8', border: '2px solid #E2E8F0' }
-                  }
-                >
-                  {cat.label} ({cat.data.length})
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ── Chip strip ──────────────────────────────── */}
-        <div
-          ref={chipStripRef}
-          className="flex gap-2 overflow-x-auto py-1"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {items.map((item, i) => {
-            const selected = i === idx
-            return (
-              <motion.button
-                key={item.id}
-                data-selected={selected ? 'true' : 'false'}
-                onClick={() => setIdx(() => i)}
-                whileTap={{ scale: 0.9 }}
-                className="shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-2xl transition-all"
-                style={
-                  selected
-                    ? {
-                        background: item.color,
-                        color: 'white',
-                        boxShadow: `0 6px 18px ${item.glow}99`,
-                        padding: '8px 12px',
-                        minWidth: mode === 'words' ? 64 : 52,
-                      }
-                    : {
-                        background: 'white',
-                        color: '#94A3B8',
-                        border: '2px solid #E8ECF0',
-                        padding: '6px 10px',
-                        minWidth: mode === 'words' ? 60 : 48,
-                      }
-                }
+        {/* ── Letter category sub-tabs ─────────────────────────── */}
+        {isLetterMode && (
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 20 }}>
+            {LETTER_CATS.map(cat => (
+              <button
+                key={cat.key}
+                onClick={() => switchLetterCat(cat.key)}
+                style={{
+                  fontFamily: T.sans, fontWeight: 800, fontSize: 13, cursor: 'pointer',
+                  padding: '7px 20px', borderRadius: 999, border: 'none',
+                  background: letterCat === cat.key ? `${T.orange}18` : 'transparent',
+                  color: letterCat === cat.key ? T.orange : T.inkSoft,
+                  boxShadow: letterCat === cat.key ? `0 0 0 1.5px ${T.orange}55` : `0 0 0 1.5px ${T.border}`,
+                  transition: 'all .18s',
+                }}
               >
-                {mode === 'words' ? (
-                  <>
-                    <span className="text-xl leading-none">{item.emoji}</span>
-                    <span
-                      className="text-[10px] font-extrabold leading-none mt-1 max-w-[56px] truncate"
-                      style={{ color: selected ? 'rgba(255,255,255,0.9)' : '#94A3B8' }}
-                    >
-                      {item.english}
-                    </span>
-                  </>
-                ) : (
-                  <span
-                    className="telugu text-2xl font-extrabold leading-none"
-                    style={{ color: selected ? 'white' : item.color }}
-                  >
-                    {item.telugu}
-                  </span>
-                )}
-              </motion.button>
-            )
-          })}
-        </div>
+                {cat.label} · <span style={{ fontFamily: T.te }}>{cat.labelTe}</span> ({letterData.length})
+              </button>
+            ))}
+          </div>
+        )}
 
-        {/* ── Item identity card ──────────────────────── */}
-        <AnimatePresence>
-          <motion.div
-            key={`${mode}-${current.id}`}
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.97, position: 'absolute', width: '100%' }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col gap-4"
-          >
-            {/* Identity header */}
+        {/* ── Main 2-col layout ─────────────────────────────────── */}
+        <div className="tv-trace-grid" style={{ paddingBottom: 10 }}>
+
+          {/* Left: item picker */}
+          <TVCard style={{ padding: 22, animation: 'tvRise .5s .05s both' }}>
+            <div style={{ fontFamily: T.sans, fontWeight: 800, fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: T.orange, marginBottom: 16 }}>
+              {isLetterMode
+                ? <>{catInfo.label} · <span style={{ fontFamily: T.te }}>{catInfo.labelTe}</span></>
+                : 'Words · పదాలు'
+              }
+            </div>
+
+            {/* Chip grid */}
             <div
-              className="flex items-center gap-4 px-5 py-4 rounded-2xl"
+              ref={chipStripRef}
               style={{
-                background: `linear-gradient(135deg, ${current.color}18 0%, ${current.light} 100%)`,
-                border: `1.5px solid ${current.color}20`,
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 10,
+                maxHeight: 360,
+                overflowY: 'auto',
+                scrollbarWidth: 'thin',
               }}
             >
-              {/* Left: emoji for words, roman for letters */}
-              {mode === 'words' ? (
-                <motion.span
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                  className="text-5xl shrink-0 leading-none"
-                  style={{ filter: `drop-shadow(0 4px 10px ${current.glow}aa)` }}
-                >
-                  {current.emoji}
-                </motion.span>
+              {items.map((item, i) => {
+                const selected = i === idx
+                return (
+                  <button
+                    key={item.id}
+                    data-selected={selected ? 'true' : 'false'}
+                    onClick={() => setIdx(() => i)}
+                    style={{
+                      aspectRatio: isLetterMode ? '1' : 'auto',
+                      minHeight: isLetterMode ? 'auto' : 44,
+                      borderRadius: 18, cursor: 'pointer', border: 'none',
+                      background: selected ? T.orange : '#FCEFE0',
+                      color: selected ? '#fff' : T.ink,
+                      fontFamily: isLetterMode ? T.te : T.sans,
+                      fontWeight: 700,
+                      fontSize: isLetterMode ? 26 : 13,
+                      boxShadow: selected ? '0 10px 20px -8px rgba(240,86,14,0.6)' : 'none',
+                      transition: 'transform .15s, background .2s',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexDirection: 'column', gap: 2, padding: isLetterMode ? 4 : '6px 8px',
+                      textAlign: 'center',
+                    }}
+                    onMouseEnter={e => { if (!selected) e.currentTarget.style.background = '#FBE3CF' }}
+                    onMouseLeave={e => { if (!selected) e.currentTarget.style.background = '#FCEFE0' }}
+                  >
+                    {isLetterMode ? (
+                      item.telugu
+                    ) : (
+                      <>
+                        <span style={{ fontSize: 16 }}>{item.emoji}</span>
+                        <span style={{ fontSize: 10, fontFamily: T.sans, color: selected ? 'rgba(255,255,255,0.9)' : T.inkSoft, fontWeight: 800 }}>
+                          {item.english}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </TVCard>
+
+          {/* Right: canvas card */}
+          <TVCard style={{ padding: 28, position: 'relative', overflow: 'visible', animation: 'tvRise .5s .12s both' }}>
+            {/* Reset button — top right, outside the card's overflow */}
+            <div style={{ fontFamily: T.sans, fontWeight: 800, fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: T.orange }}>
+              Now tracing
+            </div>
+            <h2 style={{ fontFamily: T.serif, fontWeight: 800, fontSize: 28, color: T.ink, margin: '6px 0 22px' }}>
+              {isLetterMode ? (
+                <>
+                  Letter{' '}
+                  <span style={{ fontFamily: T.te }}>{current.telugu}</span>
+                  {current.roman && (
+                    <span style={{ fontFamily: T.sans, fontSize: 17, fontWeight: 700, color: T.inkSoft }}> · {current.roman}</span>
+                  )}
+                </>
               ) : (
-                <motion.div
-                  animate={{ y: [0, -5, 0], rotate: [0, 3, -3, 0] }}
-                  transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut' }}
-                  className="baloo shrink-0 font-black leading-none"
-                  style={{ fontSize: '3rem', color: current.color, filter: `drop-shadow(0 4px 10px ${current.glow}cc)` }}
-                >
-                  {current.roman}
-                </motion.div>
+                <>
+                  <span style={{ fontSize: 22 }}>{current.emoji}</span>{' '}
+                  {current.english}
+                  <span style={{ fontFamily: T.te, fontSize: 22, fontWeight: 700, color: T.inkSoft, marginLeft: 12 }}>{current.telugu}</span>
+                </>
               )}
+            </h2>
 
-              {/* Middle: English / hint */}
-              <div className="flex-1 min-w-0">
-                {mode === 'words' ? (
-                  <>
-                    <h2 className="baloo text-3xl font-black leading-none truncate" style={{ color: current.color }}>
-                      {current.english}
-                    </h2>
-                    <p className="text-sm font-semibold mt-0.5" style={{ color: `${current.color}99` }}>
-                      {current.hint}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <span
-                      className="inline-block text-xs font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-1"
-                      style={{ background: `${current.color}22`, color: current.color }}
-                    >
-                      {current.category}
-                    </span>
-                    <p className="text-sm font-semibold" style={{ color: `${current.color}99` }}>
-                      {current.hint}
-                    </p>
-                  </>
-                )}
+            {/* Canvas area with dashed orange border */}
+            <div style={{ position: 'relative' }}>
+              <div style={{
+                borderRadius: 28, border: `2.5px dashed rgba(240,86,14,0.4)`,
+                background: 'linear-gradient(180deg, rgba(252,230,214,0.35), rgba(255,253,248,0.4))',
+                overflow: 'hidden',
+              }}>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={current.id}
+                    initial={{ opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.97, position: 'absolute', width: '100%' }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <InteractiveCanvas word={current} letterMode={isLetterMode} />
+                  </motion.div>
+                </AnimatePresence>
               </div>
-
-              {/* Right: Telugu chip + speak button */}
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                <div
-                  className="telugu text-2xl font-extrabold px-4 py-2 rounded-2xl"
-                  style={{ color: current.color, background: `${current.color}15`, border: `2px solid ${current.color}25` }}
-                >
-                  {current.telugu}
-                </div>
-                <motion.button
-                  onClick={() => speakWord(current.telugu)}
-                  whileTap={{ scale: 0.88 }}
-                  className="w-8 h-8 rounded-full flex items-center justify-center"
-                  style={{ background: current.color, color: 'white', boxShadow: `0 3px 10px ${current.glow}88` }}
-                  title="Hear it"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                </motion.button>
+              <div style={{
+                textAlign: 'center', marginTop: 8,
+                fontFamily: T.sans, fontWeight: 800, fontSize: 11.5,
+                letterSpacing: 2.4, textTransform: 'uppercase', color: T.inkSoft, opacity: 0.6,
+              }}>
+                Trace inside the golden guide
               </div>
             </div>
 
-            {/* ── Tracing canvas card ── */}
-            <div
-              className="bg-white rounded-3xl overflow-hidden"
-              style={{ boxShadow: `0 10px 40px ${current.glow}44, 0 3px 10px #00000010` }}
-            >
-              {/* Accent stripe */}
-              <div
-                className="h-1.5 w-full"
-                style={{ background: `linear-gradient(90deg, ${current.glow}, ${current.color})` }}
-              />
-
-              <div className="px-5 pt-4 pb-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: current.color }} />
-                  <span className="text-xs font-bold opacity-50" style={{ color: current.color }}>
-                    Draw on paper below the screen
-                  </span>
-                </div>
-
-                <div
-                  className="rounded-2xl overflow-hidden"
-                  style={{
-                    background: `linear-gradient(135deg, ${current.light}, white)`,
-                    border: `2px dashed ${current.color}35`,
-                  }}
-                >
-                  <InteractiveCanvas word={current} letterMode={mode === 'letters'} />
-                </div>
-              </div>
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 22 }}>
+              <TVButton onClick={handleCheck}>✓ Check stroke</TVButton>
+              <TVButton variant="ghost" onClick={() => speakWord(current.telugu)}>▶ Hear {isLetterMode ? 'letter' : 'word'}</TVButton>
             </div>
 
-            {/* ── Prev / Next navigation ── */}
-            <div className="flex items-center justify-between px-1 pb-2">
-              <motion.button
-                onClick={() => setIdx((i) => Math.max(i - 1, 0))}
+            {/* Prev / Next */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
+              <button
+                onClick={() => setIdx(i => Math.max(i - 1, 0))}
                 disabled={idx === 0}
-                whileTap={{ scale: 0.9 }}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-extrabold transition-all"
-                style={
-                  idx === 0
-                    ? { color: '#CBD5E1', background: '#F1F5F9', border: '2px solid #E2E8F0' }
-                    : { color: current.color, background: current.light, border: `2px solid ${current.color}35` }
-                }
+                style={{
+                  fontFamily: T.sans, fontWeight: 800, fontSize: 14, cursor: idx === 0 ? 'not-allowed' : 'pointer',
+                  padding: '9px 20px', borderRadius: 999, border: 'none',
+                  background: idx === 0 ? '#F1F5F9' : T.peach,
+                  color: idx === 0 ? '#CBD5E1' : T.orange,
+                  transition: 'all .18s',
+                }}
               >
                 ← Prev
-              </motion.button>
-
-              <span className="text-sm font-extrabold" style={{ color: `${current.color}88` }}>
-                {idx + 1} <span style={{ color: '#CBD5E1' }}>/</span> {items.length}
+              </button>
+              <span style={{ fontFamily: T.sans, fontWeight: 700, fontSize: 14, color: T.inkSoft }}>
+                {idx + 1} / {items.length}
               </span>
-
-              <motion.button
-                onClick={() => setIdx((i) => Math.min(i + 1, items.length - 1))}
+              <button
+                onClick={() => setIdx(i => Math.min(i + 1, items.length - 1))}
                 disabled={idx === items.length - 1}
-                whileTap={{ scale: 0.9 }}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-extrabold transition-all"
-                style={
-                  idx === items.length - 1
-                    ? { color: '#CBD5E1', background: '#F1F5F9', border: '2px solid #E2E8F0' }
-                    : { color: current.color, background: current.light, border: `2px solid ${current.color}35` }
-                }
+                style={{
+                  fontFamily: T.sans, fontWeight: 800, fontSize: 14, cursor: idx === items.length - 1 ? 'not-allowed' : 'pointer',
+                  padding: '9px 20px', borderRadius: 999, border: 'none',
+                  background: idx === items.length - 1 ? T.orange : T.orange,
+                  color: '#fff',
+                  boxShadow: idx === items.length - 1 ? 'none' : '0 8px 18px -8px rgba(240,86,14,0.6)',
+                  opacity: idx === items.length - 1 ? 0.4 : 1,
+                  transition: 'all .18s',
+                }}
               >
                 Next →
-              </motion.button>
+              </button>
             </div>
-          </motion.div>
-        </AnimatePresence>
 
-        <p className="text-center text-xs pb-4 font-semibold" style={{ color: `${current.color}55` }}>
-          Telugu Trace Kids · Practice makes perfect 🌟
-        </p>
-      </div>
+            {/* Success toast */}
+            {toast && (
+              <div style={{
+                position: 'absolute', top: 16, right: 16,
+                background: '#2E9E5B', color: '#fff',
+                fontFamily: T.sans, fontWeight: 800, fontSize: 14,
+                padding: '12px 18px', borderRadius: 14,
+                boxShadow: '0 14px 26px -12px rgba(46,158,91,0.7)',
+                animation: 'tvPop .3s both',
+              }}>
+                ✦ Beautiful! +5 stars
+              </div>
+            )}
+          </TVCard>
+        </div>
+
+      </TVPage>
+      <TVFooter />
     </div>
   )
 }

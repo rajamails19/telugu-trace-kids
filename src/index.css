@@ -1,24 +1,91 @@
 @import "tailwindcss";
 
-*, *::before, *::after {
-  box-sizing: border-box;
+*, *::before, *::after { box-sizing: border-box; }
+
+/* ── Design tokens ───────────────────────────────────────── */
+:root {
+  --cream:     #FBF4E4;
+  --cream-card:#FFFDF8;
+  --ink:       #3A1E9C;
+  --ink-deep:  #241A55;
+  --ink-soft:  #8E89A8;
+  --orange:    #F0560E;
+  --gold:      #F5B62B;
+  --peach:     #FCE6D6;
+  --petal:     #F8D9A0;
+  --border:    rgba(58,30,156,0.10);
 }
 
 body {
   margin: 0;
-  font-family: 'Nunito', sans-serif;
+  background: var(--cream);
+  font-family: 'Mulish', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#root {
-  min-height: 100svh;
+#root { min-height: 100svh; }
+
+/* ── Legacy font helpers (InteractiveCanvas uses these) ─── */
+.baloo   { font-family: 'Playfair Display', Georgia, serif; }
+.telugu  { font-family: 'Noto Sans Telugu', sans-serif; }
+
+/* ── Keyframe animations ─────────────────────────────────── */
+@keyframes tvPageIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes tvRise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes tvGlow {
+  0%,100% { opacity: 0.6; transform: scale(1); }
+  50%     { opacity: 1;   transform: scale(1.05); }
+}
+@keyframes tvPop {
+  from { transform: scale(.85); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+@keyframes tvSpin {
+  to { transform: rotate(360deg); }
 }
 
-.baloo {
-  font-family: 'Baloo 2', cursive;
+/* ── Responsive grid helpers ─────────────────────────────── */
+.tv-hero        { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; }
+.tv-cards       { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.tv-trace-grid  { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; }
+.tv-shloka-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 36px; align-items: center; }
+.tv-stats       { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.tv-stats3      { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.tv-learner     { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; align-items: center; gap: 14px; }
+.tv-navlinks    { display: flex !important; }
+
+@media (max-width: 900px) {
+  .tv-hero        { grid-template-columns: 1fr; }
+  .tv-cards       { grid-template-columns: 1fr; }
+  .tv-trace-grid  { grid-template-columns: 1fr; }
+  .tv-shloka-grid { grid-template-columns: 1fr; }
+  .tv-stats       { grid-template-columns: repeat(2, 1fr); }
+  .tv-stats3      { grid-template-columns: 1fr; }
+  .tv-learner     { grid-template-columns: 1fr 1fr; }
+  .tv-navlinks    { display: none !important; }
 }
 
-.telugu {
-  font-family: 'Noto Sans Telugu', sans-serif;
+@media (max-width: 540px) {
+  .tv-stats       { grid-template-columns: 1fr; }
+  .tv-learner     { grid-template-columns: 1fr; }
+}
+
+/* ── Card hover transition ───────────────────────────────── */
+.tv-card-hover {
+  transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s;
+}
+
+/* ── Reduced motion ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
