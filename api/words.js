@@ -17,23 +17,28 @@ export default async function handler(req, res) {
   cors(res)
   if (req.method === 'OPTIONS') return res.status(200).end()
 
-  if (req.method === 'GET') {
-    const rows = await sql`SELECT * FROM words ORDER BY id`
-    return res.json(rows.map(parseWord))
-  }
+  try {
+    if (req.method === 'GET') {
+      const rows = await sql`SELECT * FROM words ORDER BY id`
+      return res.json(rows.map(parseWord))
+    }
 
-  if (req.method === 'POST') {
-    const { telugu, english, emoji, hint, color, light, glow, deco } = req.body
-    const [{ max }] = await sql`SELECT COALESCE(MAX(id), 0) as max FROM words`
-    const id = Number(max) + 1
-    await sql`
-      INSERT INTO words (id, telugu, english, emoji, hint, color, light, glow, deco)
-      VALUES (${id}, ${telugu}, ${english}, ${emoji ?? null}, ${hint ?? null},
-              ${color ?? '#EA580C'}, ${light ?? '#FFF7ED'}, ${glow ?? '#FB923C'},
-              ${JSON.stringify(deco ?? [])})`
-    const [row] = await sql`SELECT * FROM words WHERE id = ${id}`
-    return res.status(201).json(parseWord(row))
-  }
+    if (req.method === 'POST') {
+      const { telugu, english, emoji, hint, color, light, glow, deco } = req.body
+      const [{ max }] = await sql`SELECT COALESCE(MAX(id), 0) as max FROM words`
+      const id = Number(max) + 1
+      await sql`
+        INSERT INTO words (id, telugu, english, emoji, hint, color, light, glow, deco)
+        VALUES (${id}, ${telugu}, ${english}, ${emoji ?? null}, ${hint ?? null},
+                ${color ?? '#EA580C'}, ${light ?? '#FFF7ED'}, ${glow ?? '#FB923C'},
+                ${JSON.stringify(deco ?? [])})`
+      const [row] = await sql`SELECT * FROM words WHERE id = ${id}`
+      return res.status(201).json(parseWord(row))
+    }
 
-  res.status(405).json({ error: 'Method not allowed' })
+    res.status(405).json({ error: 'Method not allowed' })
+  } catch (err) {
+    console.error('[api/words]', err)
+    res.status(500).json({ error: err.message })
+  }
 }
