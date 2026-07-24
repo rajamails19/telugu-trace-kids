@@ -209,7 +209,7 @@ export default function AdminPage() {
             {preview && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
-                style={{ marginTop: 16, borderRadius: 18, padding: 20, background: `rgba(58,30,156,0.06)`, border: `1.5px solid ${T.border}`, display: 'flex', alignItems: 'center', gap: 18 }}
+                style={{ marginTop: 16, borderRadius: 18, padding: 20, background: `rgba(58,30,156,0.06)`, border: `1.5px solid ${T.border}`, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}
               >
                 <span style={{ fontSize: 36 }}>📝</span>
                 <div style={{ flex: 1 }}>
@@ -270,11 +270,11 @@ export default function AdminPage() {
                         {word.hint && <p style={{ fontFamily: T.sans, fontSize: 12, color: T.inkSoft, opacity: 0.6, margin: '2px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{word.hint}</p>}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                        <button onClick={() => speakWord(word.telugu)} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', cursor: 'pointer', background: word.color ?? T.ink, color: '#fff', display: 'grid', placeItems: 'center' }} title="Hear it">
+                        <button onClick={() => speakWord(word.telugu)} style={{ width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer', background: word.color ?? T.ink, color: '#fff', display: 'grid', placeItems: 'center' }} title="Hear it">
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3" /></svg>
                         </button>
-                        <button onClick={() => { setEditId(word.id); setEditForm({ telugu: word.telugu, english: word.english, emoji: word.emoji, hint: word.hint }) }} style={{ padding: '6px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', background: `rgba(58,30,156,0.08)`, color: T.ink, fontFamily: T.sans, fontWeight: 800, fontSize: 13 }}>Edit</button>
-                        <button onClick={() => handleDelete(word.id, word.english)} style={{ padding: '6px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', background: '#FEF2F2', color: '#EF4444', fontFamily: T.sans, fontWeight: 800, fontSize: 13 }}>Delete</button>
+                        <button onClick={() => { setEditId(word.id); setEditForm({ telugu: word.telugu, english: word.english, emoji: word.emoji, hint: word.hint }) }} style={{ padding: '10px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', background: `rgba(58,30,156,0.08)`, color: T.ink, fontFamily: T.sans, fontWeight: 800, fontSize: 13 }}>Edit</button>
+                        <button onClick={() => handleDelete(word.id, word.english)} style={{ padding: '10px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', background: '#FEF2F2', color: '#EF4444', fontFamily: T.sans, fontWeight: 800, fontSize: 13 }}>Delete</button>
                       </div>
                     </div>
                   )}

@@ -60,6 +60,7 @@ body {
 .tv-stats3      { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .tv-learner     { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; align-items: center; gap: 14px; }
 .tv-navlinks    { display: flex !important; }
+.tv-hamburger   { display: none !important; }
 
 @media (max-width: 900px) {
   .tv-hero        { grid-template-columns: 1fr; }
@@ -69,7 +70,11 @@ body {
   .tv-stats       { grid-template-columns: repeat(2, 1fr); }
   .tv-stats3      { grid-template-columns: 1fr; }
   .tv-learner     { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 680px) {
   .tv-navlinks    { display: none !important; }
+  .tv-hamburger   { display: flex !important; }
 }
 
 @media (max-width: 540px) {

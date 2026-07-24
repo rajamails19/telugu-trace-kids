@@ -62,7 +62,7 @@ export default function HomePage() {
               <em style={{ fontStyle: 'italic', color: T.orange }}>always meant</em> to be.
             </h1>
 
-            <p style={{ fontFamily: T.sans, fontWeight: 500, fontSize: 19, lineHeight: 1.6, color: T.inkSoft, margin: '24px 0 0', maxWidth: 480 }}>
+            <p style={{ fontFamily: T.sans, fontWeight: 500, fontSize: 'clamp(15px,4.5vw,19px)', lineHeight: 1.6, color: T.inkSoft, margin: '24px 0 0', maxWidth: 480 }}>
               A premium learning ritual — letter by letter, shloka by shloka.
               Beautifully designed for small hands and curious minds.
             </p>

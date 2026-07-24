@@ -177,7 +177,7 @@ export default function ProgressPage() {
 
         {/* ── Practice log ──────────────────────────────────────── */}
         <TVCard style={{ overflow: 'hidden', marginTop: 20, animation: 'tvRise .5s .3s both' }}>
-          <div style={{ padding: '20px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${T.border}` }}>
+          <div style={{ padding: '20px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, borderBottom: `1px solid ${T.border}` }}>
             <h2 style={{ fontFamily: T.serif, fontWeight: 800, fontSize: 22, color: T.ink, margin: 0 }}>
               Practice Log <span style={{ fontFamily: T.sans, fontSize: 14, fontWeight: 700, color: T.inkSoft }}>({totalSessions} sessions)</span>
             </h2>
@@ -210,10 +210,10 @@ export default function ProgressPage() {
                       {new Date(log.practiced_at).toLocaleString()}
                     </p>
                   </div>
-                  <button onClick={() => cycleStars(log)} style={{ fontSize: 17, background: 'none', border: 'none', cursor: 'pointer' }} title="Click to update stars">
+                  <button onClick={() => cycleStars(log)} style={{ fontSize: 17, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 4px', minWidth: 44, minHeight: 44 }} title="Click to update stars">
                     {'⭐'.repeat(log.stars)}{'☆'.repeat(3 - log.stars)}
                   </button>
-                  <button onClick={() => deleteOne(log.id)} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: '#FEF2F2', color: '#EF4444', fontWeight: 800, fontSize: 12 }} title="Remove">
+                  <button onClick={() => deleteOne(log.id)} style={{ width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer', background: '#FEF2F2', color: '#EF4444', fontWeight: 800, fontSize: 14 }} title="Remove">
                     ✕
                   </button>
                 </motion.div>
